@@ -1,0 +1,508 @@
+# @package _global_
+
+scratch:
+  resolution: 1024
+  train_batch_size: 1 #this is B
+  #val_batch_size: 1
+  num_train_workers: 10 #before it was 10
+  #num_val_workers: 10
+  num_frames: 8 #this is T
+  max_num_objects: 3 #3 
+  base_lr: 3.0e-4 #base: 5.0e-6
+  vision_lr: 3.0e-06
+  phases_per_epoch: 1
+  num_epochs: 300
+  reverse_time_prob: 0.5  
+
+dataset:
+  # PATHS to Dataset
+  # mose_img_folder: /scratch_net/thor_second/master_thesis/datasets/mose/train/JPEGImages # PATH to MOSE JPEGImages folder
+  # mose_gt_folder: /scratch_net/thor_second/master_thesis/datasets/mose/train/Annotations  # PATH to MOSE Annotations folder
+  # mose_file_list_txt: /scratch_net/thor_second/master_thesis/datasets/mose/train/mose_train.txt # Optional PATH to filelist containing a subset of videos to be used for training
+  # multiplier_mose: 1
+
+  # sav_img_folder: /scratch_net/thor_second/master_thesis/datasets/sa-v/sav_train_sub/JPEGImages_24fps
+  # sav_gt_folder: /scratch_net/thor_second/master_thesis/datasets/sa-v/sav_train_sub/Annotations_6fps
+  # sav_file_list_txt: /scratch_net/thor_second/master_thesis/datasets/sa-v/sav_train_sub/sav_train_sub.txt # Optional PATH to filelist containing a subset of videos to be used for training
+  # multiplier_sav: 1
+
+  ################ 
+  sav_img_folder: /scratch_net/thor_second/master_thesis/datasets/sa-v/sav_train/JPEGImages_24fps_000
+  sav_gt_folder: /scratch_net/thor_second/master_thesis/datasets/sa-v/sav_train/sav_000
+  # sav_img_folder: /scratch_net/thor_second/master_thesis/datasets/sa-v/sav_train/JPEGImages_24fps_000_to_005
+  # sav_gt_folder: /scratch_net/thor_second/master_thesis/datasets/sa-v/sav_train/sav_000_to_005
+  # sav_file_list_txt: /scratch_net/thor_second/master_thesis/datasets/sa-v/sav_train/sav_train_sub.txt
+  # sav_img_folder_1: /scratch_net/thor_second/master_thesis/datasets/sa-v/sav_train/JPEGImages_24fps_001
+  # sav_gt_folder_1: /scratch_net/thor_second/master_thesis/datasets/sa-v/sav_train/sav_001
+  # sav_img_folder_2: /scratch_net/thor_second/master_thesis/datasets/sa-v/sav_train/JPEGImages_24fps_002
+  # sav_gt_folder_2: /scratch_net/thor_second/master_thesis/datasets/sa-v/sav_train/sav_002
+  # sav_img_folder_3: /scratch_net/thor_second/master_thesis/datasets/sa-v/sav_train/JPEGImages_24fps_003
+  # sav_gt_folder_3: /scratch_net/thor_second/master_thesis/datasets/sa-v/sav_train/sav_003
+  # sav_img_folder_4: /scratch_net/thor_second/master_thesis/datasets/sa-v/sav_train/JPEGImages_24fps_004
+  # sav_gt_folder_4: /scratch_net/thor_second/master_thesis/datasets/sa-v/sav_train/sav_004
+  # sav_img_folder_5: /scratch_net/thor_second/master_thesis/datasets/sa-v/sav_train/JPEGImages_24fps_005
+  # sav_gt_folder_5: /scratch_net/thor_second/master_thesis/datasets/sa-v/sav_train/sav_005
+  multiplier_sav: 1
+  ################
+
+  # sav_img_folder: /scratch_net/thor_second/master_thesis/datasets/sa-v/sav_train_sub/JPEGImages_24fps
+  # sav_gt_folder: /scratch_net/thor_second/master_thesis/datasets/sa-v/sav_train_sub/sav_000_subset
+  # sav_file_list_txt: /scratch_net/thor_second/master_thesis/datasets/sa-v/sav_train_sub/sav_train_sub.txt # Optional PATH to filelist containing a subset of videos to be used for training
+  # multiplier_sav: 1
+
+  # sav_img_folder_val: /scratch_net/thor_second/master_thesis/datasets/sa-v/sav_val/JPEGImages_24fps
+  # sav_gt_folder_val: /scratch_net/thor_second/master_thesis/datasets/sa-v/sav_val/Annotations_6fps
+  # sav_val_file_list_txt: /scratch_net/thor_second/master_thesis/datasets/sa-v/sav_val/sav_val_sub.txt # Optional PATH to filelist containing a subset of videos to be used for training
+  # multiplier_sav_val: 1
+
+# Video transforms
+vos:
+  train_transforms:
+    - _target_: training.dataset.transforms.ComposeAPI
+      transforms:
+        - _target_: training.dataset.transforms.RandomHorizontalFlip
+          consistent_transform: True
+        - _target_: training.dataset.transforms.RandomAffine
+          degrees: 25
+          shear: 20
+          image_interpolation: bilinear
+          consistent_transform: True
+        - _target_: training.dataset.transforms.RandomResizeAPI
+          sizes: ${scratch.resolution}
+          square: true
+          consistent_transform: True
+        - _target_: training.dataset.transforms.ColorJitter
+          consistent_transform: True
+          brightness: 0.1
+          contrast: 0.03
+          saturation: 0.03
+          hue: null
+        - _target_: training.dataset.transforms.RandomGrayscale
+          p: 0.05
+          consistent_transform: True
+        - _target_: training.dataset.transforms.ColorJitter
+          consistent_transform: False
+          brightness: 0.1
+          contrast: 0.05
+          saturation: 0.05
+          hue: null
+        - _target_: training.dataset.transforms.ToTensorAPI
+        - _target_: training.dataset.transforms.NormalizeAPI
+          mean: [0.485, 0.456, 0.406]
+          std: [0.229, 0.224, 0.225]
+
+  # val_transforms:
+  #   - _target_: training.dataset.transforms.ComposeAPI
+  #     transforms:
+  #       - _target_: training.dataset.transforms.RandomResizeAPI
+  #         sizes: ${scratch.resolution}
+  #         square: true
+  #         consistent_transform: True
+  #       - _target_: training.dataset.transforms.ToTensorAPI
+  #       - _target_: training.dataset.transforms.NormalizeAPI
+  #         mean: [0.485, 0.456, 0.406]
+  #         std: [0.229, 0.224, 0.225]
+
+trainer:
+  _target_: training.trainer.Trainer
+  mode: train_only
+  max_epochs: ${times:${scratch.num_epochs},${scratch.phases_per_epoch}}
+  accelerator: cuda
+  #val_epoch_freq: 1
+  seed_value: 123
+
+  model:
+    _target_: training.model.sam2_xmem_single_batch.SAM2XMemTrain   #training.model.sam2.SAM2Train training.model.sam2_xmem.SAM2XMemTrain
+    image_encoder:
+      _target_: sam2.modeling.backbones.image_encoder.ImageEncoder
+      scalp: 1
+      trunk:
+        _target_: sam2.modeling.backbones.hieradet.Hiera
+        embed_dim: 96
+        num_heads: 1
+        stages: [1, 2, 7, 2]
+        global_att_blocks: [5, 7, 9]
+        window_pos_embed_bkg_spatial_size: [7, 7]
+      neck:
+        _target_: sam2.modeling.backbones.image_encoder.FpnNeck
+        position_encoding:
+          _target_: sam2.modeling.position_encoding.PositionEmbeddingSine
+          num_pos_feats: 256
+          normalize: true
+          scale: null
+          temperature: 10000
+        d_model: 256
+        backbone_channel_list: [768, 384, 192, 96]
+        fpn_top_down_levels: [2, 3]  # output level 0 and 1 directly use the backbone features
+        fpn_interp_model: nearest
+
+
+    num_maskmem: 7
+    image_size: ${scratch.resolution}
+    use_mask_input_as_output_without_sam: true
+    # use high-resolution feature map in the SAM mask decoder
+    use_high_res_features_in_sam: true
+    # output 3 masks on the first click on initial conditioning frames
+    multimask_output_in_sam: true
+    # SAM heads
+    iou_prediction_use_sigmoid: True
+    # cross-attend to object pointers from other frames (based on SAM output tokens) in the encoder
+    use_obj_ptrs_in_encoder: true
+    add_tpos_enc_to_obj_ptrs: true
+    proj_tpos_enc_in_obj_ptrs: true
+    # object occlusion prediction
+    pred_obj_scores: true
+    pred_obj_scores_mlp: true
+    fixed_no_obj_ptr: true
+    # multimask tracking settings
+    multimask_output_for_tracking: true
+    use_multimask_token_for_obj_ptr: true
+    multimask_min_pt_num: 0
+    multimask_max_pt_num: 1
+    use_mlp_for_obj_ptr_proj: true
+    # Compilation flag
+    # compile_image_encoder: False
+
+    ####### Training specific params #######
+    # box/point input and corrections
+    prob_to_use_pt_input_for_train: 0.0 #before it was 0.5
+    prob_to_use_pt_input_for_eval: 0.0
+    prob_to_use_box_input_for_train: 0.5  # 0.5*0.5 = 0.25 prob to use box instead of points <-- from before 
+    prob_to_use_box_input_for_eval: 0.0
+    prob_to_sample_from_gt_for_train: 0.1  # with a small prob, sampling correction points from GT mask instead of prediction errors
+    num_frames_to_correct_for_train: 2  # iteratively sample on random 1~2 frames (always include the first frame) ###this was 2 
+    num_frames_to_correct_for_eval: 1  # only iteratively sample on first frame
+    rand_frames_to_correct_for_train: True  # random #init-cond-frame ~ 2
+    add_all_frames_to_correct_as_cond: True  # when a frame receives a correction click, it becomes a conditioning frame (even if it's not initially a conditioning frame)
+    # maximum 2 initial conditioning frames
+    num_init_cond_frames_for_train: 1 # only mask on the first frame before it was 2
+    rand_init_cond_frames_for_train: True  # random 1~2
+    num_correction_pt_per_frame: 7
+    use_act_ckpt_iterative_pt_sampling: false
+    
+    ##add xmem path
+    xmem_ckpt_path: /scratch_net/thor_second/master_thesis/XMem/saves/XMem.pth
+    ###put here the boolean to freeze 
+    freeze_image_encoder: True
+    # freeze_sam_mask_decoder: True
+    # freeze_sam_prompt_encoder: True
+    # freeze_xmem_feature_projector: True
+    # freeze_value_encoder: True
+    # freeze_sensory_gru: True
+
+    
+    num_init_cond_frames_for_eval: 1  # only mask on the first frame
+    forward_backbone_per_frame_for_eval: False ###for eval
+
+      # XMem-specific configuration:
+    memory_cfg:
+      key_dim: 64
+      value_dim: 512
+      hidden_dim: 64
+      out_channels_f16: 1024
+      out_channels_f8: 512
+      out_channels_f4: 256
+      single_object: False
+      deep_update_prob: 0.5
+      num_ref_frames: 3 ##this is specific to XMem method 
+      max_num_objects: ${scratch.max_num_objects} #3 #1 
+    
+
+  data:
+    train:
+      _target_: training.dataset.sam2_datasets.TorchTrainMixedDataset
+      phases_per_epoch: ${scratch.phases_per_epoch}
+      batch_sizes:
+        - ${scratch.train_batch_size}
+        # - ${scratch.train_batch_size}
+        # - ${scratch.train_batch_size}
+        # - ${scratch.train_batch_size}
+        # - ${scratch.train_batch_size}
+        # - ${scratch.train_batch_size}
+
+      datasets:
+        # # === MOSE video dataset ===
+        # - _target_: training.dataset.vos_dataset.VOSDataset
+        #   transforms: ${vos.train_transforms}
+        #   training: true
+        #   video_dataset:
+        #     _target_: training.dataset.vos_raw_dataset.PNGRawDataset
+        #     img_folder: ${dataset.mose_img_folder}
+        #     gt_folder: ${dataset.mose_gt_folder}
+        #     file_list_txt: ${dataset.mose_file_list_txt}
+        #     single_object_mode: true
+        #   sampler:
+        #     _target_: training.dataset.vos_sampler.RandomUniformSampler
+        #     num_frames: ${scratch.num_frames}
+        #     max_num_objects: ${scratch.max_num_objects}
+        #     reverse_time_prob: ${scratch.reverse_time_prob}
+        #   multiplier: ${dataset.multiplier_mose}
+        
+
+        # # === SA-V video dataset ===
+        # - _target_: training.dataset.vos_dataset.VOSDataset
+        #   training: true
+        #   transforms: ${vos.train_transforms}
+        #   video_dataset:
+        #     _target_: training.dataset.vos_raw_dataset.PNGRawDataset
+        #     img_folder: ${dataset.sav_img_folder}
+        #     gt_folder: ${dataset.sav_gt_folder}
+        #     file_list_txt: ${dataset.sav_file_list_txt}
+        #     single_object_mode: true
+        #   sampler:
+        #     _target_: training.dataset.vos_sampler.RandomUniformSampler
+        #     num_frames: ${scratch.num_frames}
+        #     max_num_objects: ${scratch.max_num_objects}
+        #     reverse_time_prob: ${scratch.reverse_time_prob}
+        #   multiplier: ${dataset.multiplier_sav}
+
+
+        # === SA-V video dataset === SAV_000
+        - _target_: training.dataset.vos_dataset.VOSDataset
+          training: true
+          transforms: ${vos.train_transforms}
+          video_dataset:
+            _target_: training.dataset.vos_raw_dataset.JSONRawDataset
+            img_folder: ${dataset.sav_img_folder}
+            gt_folder: ${dataset.sav_gt_folder}
+            # file_list_txt: ${dataset.sav_file_list_txt}
+            ann_every: 4
+          sampler:
+            _target_: training.dataset.vos_sampler.RandomUniformSampler
+            num_frames: ${scratch.num_frames}
+            max_num_objects: ${scratch.max_num_objects}
+            reverse_time_prob: ${scratch.reverse_time_prob}
+          multiplier: ${dataset.multiplier_sav}
+
+        # #SAV_001
+        # - _target_: training.dataset.vos_dataset.VOSDataset
+        #   training: true
+        #   transforms: ${vos.train_transforms}
+        #   video_dataset:
+        #     _target_: training.dataset.vos_raw_dataset.JSONRawDataset
+        #     img_folder: ${dataset.sav_img_folder_1}
+        #     gt_folder: ${dataset.sav_gt_folder_1}
+        #     #file_list_txt: ${dataset.sav_file_list_txt}
+        #     ann_every: 4
+        #   sampler:
+        #     _target_: training.dataset.vos_sampler.RandomUniformSampler
+        #     num_frames: ${scratch.num_frames}
+        #     max_num_objects: ${scratch.max_num_objects}
+        #     reverse_time_prob: ${scratch.reverse_time_prob}
+        #   multiplier: ${dataset.multiplier_sav}
+
+        # #SAV_002
+        # - _target_: training.dataset.vos_dataset.VOSDataset
+        #   training: true
+        #   transforms: ${vos.train_transforms}
+        #   video_dataset:
+        #     _target_: training.dataset.vos_raw_dataset.JSONRawDataset
+        #     img_folder: ${dataset.sav_img_folder_2}
+        #     gt_folder: ${dataset.sav_gt_folder_2}
+        #     #file_list_txt: ${dataset.sav_file_list_txt}
+        #     ann_every: 4
+        #   sampler:
+        #     _target_: training.dataset.vos_sampler.RandomUniformSampler
+        #     num_frames: ${scratch.num_frames}
+        #     max_num_objects: ${scratch.max_num_objects}
+        #     reverse_time_prob: ${scratch.reverse_time_prob}
+        #   multiplier: ${dataset.multiplier_sav}
+
+        # #SAV_003
+        # - _target_: training.dataset.vos_dataset.VOSDataset
+        #   training: true
+        #   transforms: ${vos.train_transforms}
+        #   video_dataset:
+        #     _target_: training.dataset.vos_raw_dataset.JSONRawDataset
+        #     img_folder: ${dataset.sav_img_folder_3}
+        #     gt_folder: ${dataset.sav_gt_folder_3}
+        #     #file_list_txt: ${dataset.sav_file_list_txt}
+        #     ann_every: 4
+        #   sampler:
+        #     _target_: training.dataset.vos_sampler.RandomUniformSampler
+        #     num_frames: ${scratch.num_frames}
+        #     max_num_objects: ${scratch.max_num_objects}
+        #     reverse_time_prob: ${scratch.reverse_time_prob}
+        #   multiplier: ${dataset.multiplier_sav}
+
+        # #SAV_004
+        # - _target_: training.dataset.vos_dataset.VOSDataset
+        #   training: true
+        #   transforms: ${vos.train_transforms}
+        #   video_dataset:
+        #     _target_: training.dataset.vos_raw_dataset.JSONRawDataset
+        #     img_folder: ${dataset.sav_img_folder_4}
+        #     gt_folder: ${dataset.sav_gt_folder_4}
+        #     #file_list_txt: ${dataset.sav_file_list_txt}
+        #     ann_every: 4
+        #   sampler:
+        #     _target_: training.dataset.vos_sampler.RandomUniformSampler
+        #     num_frames: ${scratch.num_frames}
+        #     max_num_objects: ${scratch.max_num_objects}
+        #     reverse_time_prob: ${scratch.reverse_time_prob}
+        #   multiplier: ${dataset.multiplier_sav}
+
+        # #SAV_005
+        # - _target_: training.dataset.vos_dataset.VOSDataset
+        #   training: true
+        #   transforms: ${vos.train_transforms}
+        #   video_dataset:
+        #     _target_: training.dataset.vos_raw_dataset.JSONRawDataset
+        #     img_folder: ${dataset.sav_img_folder_5}
+        #     gt_folder: ${dataset.sav_gt_folder_5}
+        #     #file_list_txt: ${dataset.sav_file_list_txt}
+        #     ann_every: 4
+        #   sampler:
+        #     _target_: training.dataset.vos_sampler.RandomUniformSampler
+        #     num_frames: ${scratch.num_frames}
+        #     max_num_objects: ${scratch.max_num_objects}
+        #     reverse_time_prob: ${scratch.reverse_time_prob}
+        #   multiplier: ${dataset.multiplier_sav}
+
+      shuffle: True
+      num_workers: ${scratch.num_train_workers}
+      pin_memory: True
+      drop_last: True
+      collate_fn:
+        _target_: training.utils.data_utils.collate_fn
+        _partial_: true
+        dict_key: all
+
+
+  optim:
+    amp:
+      enabled: True
+      amp_dtype: bfloat16
+
+    optimizer:
+      _target_: torch.optim.AdamW
+
+    gradient_clip:
+      _target_: training.optimizer.GradientClipper
+      max_norm: 0.1
+      norm_type: 2
+
+    param_group_modifiers:
+      - _target_: training.optimizer.layer_decay_param_modifier
+        _partial_: True
+        layer_decay_value: 0.9
+        apply_to: 'image_encoder.trunk'
+        overrides:
+          - pattern: '*pos_embed*'
+            value: 1.0
+
+    options:
+      lr:
+        - scheduler:
+            _target_: fvcore.common.param_scheduler.CosineParamScheduler
+            start_value: ${scratch.base_lr}
+            end_value: ${divide:${scratch.base_lr},10}
+        # - scheduler:
+        #     _target_: fvcore.common.param_scheduler.CompositeParamScheduler
+        #     schedulers:
+        #       - _target_: fvcore.common.param_scheduler.LinearParamScheduler
+        #         start_value: 0.0
+        #         end_value: ${scratch.base_lr}
+        #       - _target_: fvcore.common.param_scheduler.CosineParamScheduler
+        #         start_value: ${scratch.base_lr}
+        #         end_value: ${divide:${scratch.base_lr},10}
+        #     lengths: [0.05, 0.95]
+        - scheduler:
+            _target_: fvcore.common.param_scheduler.CosineParamScheduler
+            start_value: ${scratch.vision_lr}
+            end_value: ${divide:${scratch.vision_lr},10}
+          param_names:
+            - 'image_encoder.*'
+      weight_decay:
+        - scheduler:
+            _target_: fvcore.common.param_scheduler.ConstantParamScheduler
+            value: 0.1
+        - scheduler:
+            _target_: fvcore.common.param_scheduler.ConstantParamScheduler
+            value: 0.0
+          param_names:
+            - '*bias*'
+          module_cls_names: ['torch.nn.LayerNorm']
+
+  loss:
+    all:
+      _target_: training.loss_fns.MultiStepMultiMasksAndIous
+      weight_dict:
+        loss_mask: 20
+        loss_dice: 1
+        loss_iou: 1
+        loss_class: 1
+      supervise_all_iou: true
+      iou_use_l1_loss: true
+      pred_obj_scores: true
+      focal_gamma_obj_score: 0.0
+      focal_alpha_obj_score: -1.0
+
+    # val:
+    #   _target_: training.loss_fns.MultiStepMultiMasksAndIous
+    #   weight_dict:
+    #     loss_mask: 20
+    #     loss_dice: 1
+    #     loss_iou: 1
+    #     loss_class: 1
+    #   supervise_all_iou: true
+    #   iou_use_l1_loss: true
+    #   pred_obj_scores: true
+    #   focal_gamma_obj_score: 0.0
+    #   focal_alpha_obj_score: -1.0
+
+  distributed:
+    backend: nccl
+    find_unused_parameters: True
+
+  logging:
+    tensorboard_writer:
+      _target_: training.utils.logger.make_tensorboard_logger
+      log_dir:  ${launcher.experiment_log_dir}/tensorboard
+      flush_secs: 120
+      should_log: True
+    log_dir: ${launcher.experiment_log_dir}/logs
+    log_freq: 10
+
+  # initialize from a SAM 2 checkpoint
+  checkpoint:
+    save_dir: ${launcher.experiment_log_dir}/checkpoints
+    save_freq: 0 # 0 only last checkpoint is saved.
+    save_list: [50, 100]
+    resume_from: null #./sav_training_000_to_005_sam2_tiny_xmem/img_encoder_freeze_and_xmem_pretrained_4gpus_for_xmem/checkpoints/checkpoint.pt  # null <---- disable automatic checkpoint resuming
+    model_weight_initializer: 
+      _partial_: True
+      _target_: training.utils.checkpoint_utils.load_state_dict_into_model
+      strict: False #that was True
+      ignore_unexpected_keys: []
+      ignore_missing_keys: ['xmem.*']
+      # - 'memory_encoder.*'
+      # - 'memory_attention.*'
+      # - 'maskmem_tpos_enc'
+      # - 'no_mem_embed'
+      # - 'no_mem_pos_enc'
+      # - 'no_obj_embed_spatial'
+      # - 'xmem.*'
+
+
+      state_dict:
+        _target_: training.utils.checkpoint_utils.load_checkpoint_and_apply_kernels
+        checkpoint_path: ./checkpoints/sam2.1_hiera_tiny_img_encoder.pt # PATH to SAM 2.1 checkpoint
+        ckpt_state_dict_keys: ['model']
+
+launcher:
+  num_nodes: 1
+  gpus_per_node: 1
+  experiment_log_dir: /scratch_net/thor_second/master_thesis/sam2_xmem/sav_training_sam2_tiny_xmem/img_encoder_freeze_and_xmem_pretrained_lr3e4 # Path to log directory, defaults to ./sam2_logs/${config_name}
+
+# SLURM args if running on a cluster
+submitit:
+  partition: null
+  account: null
+  qos: null
+  #cpus_per_task: 10
+  use_cluster: false
+  #timeout_hour: 24
+  name: null
+  port_range: [10000, 65000]
+
